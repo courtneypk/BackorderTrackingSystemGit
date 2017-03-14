@@ -36,7 +36,7 @@ Private Sub ImportMBO_Click()
     If MBOFileNamePath = "" Then
         tryAgain = MsgBox("No file name was selected. If you want to try again click Yes, if not click No", vbYesNo)
         If tryAgain = vbYes Then
-            MBOFileNamePath = getFileName()
+            MBOFileNamePath = getFileName("Select new MBO file")
         Else
             Exit Sub
         End If
@@ -63,7 +63,7 @@ End Sub
 Private Sub ImportRxScanInventory_Click()
 
     Dim Response1, Response2, Response3, tryAgain As Integer
-    Dim RxScanInventoryFileNamePath As String
+    Dim RxScanInventoryFileNamePath, SQL1, SQL2, SQL3 As String
     
     ' DoCmd.RunSavedImportExport ("Import-MBO")
     ' Need to use code for this process at this time
@@ -94,13 +94,22 @@ Private Sub ImportRxScanInventory_Click()
         End If
     End If
     
-    ' First clear all data from the tmp table "tbl RxScan Inventory Non-Warehouse", then transfer the spreadsheet already selected with the path in
-    ' MBOFileNamePath
+    ' First clear all data from the tmp table "tmpRxScanInventory", then transfer the spreadsheet already selected with the path in
+    ' MBOFileNamePath, and finally use a SQL statement to pick a subset of columns to be copied into the table "tbl RxScan Inventory Non-Warehouse"
     DoCmd.SetWarnings False
-    DoCmd.RunSQL "DELETE * FROM [tbl RxScan Inventory Non-Warehouse];"
+    DoCmd.RunSQL "DELETE * FROM [tmpRxScanInventory];"
     DoCmd.SetWarnings True
     
-    DoCmd.TransferSpreadsheet acImport, acSpreadsheetTypeExcel12, "tbl RxScan Inventory Non-Warehouse", MBOFileNamePath, True, , False
+    ' Need to first import entire spreadsheet into a temporary table and then do a select of columns into the final table
+    DoCmd.TransferSpreadsheet acImport, acSpreadsheetTypeExcel12, "tmp RxScan Inventory", RxScanInventoryFileNamePath, True, , False
+
+    DoCmd.SetWarnings False
+    SQL1 = "SELECT tmpRxScanInventory.LocationName, tmpRxScanInventory.NDC, tmpRxScanInventory.Description, tmpRxScanInventory.PackageSize, tmpRxScanInventory.PackageUnit, "
+    SQL2 = "tmpRxScanInventory.QuantityOnHand, tmpRxScanInventory.AWC, tmpRxScanInventory.UOM, tmpRxScanInventory.TotalCost INTO [tbl RxScan Inventory Non-Warehouse] FROM tmpRxScanInventory;"
+    SQL3 = SQL1 & SQL2
+    DoCmd.RunSQL SQL3
+    DoCmd.SetWarnings True
+    
 
     ' Warehouse file
 
@@ -116,13 +125,19 @@ Private Sub ImportRxScanInventory_Click()
         End If
     End If
     
-    ' First clear all data from the tmp table "tbl RxScan Inventory Warehouse", then transfer the spreadsheet already selected with the path in
+    ' First clear all data from the tmp table "tmpRxScanInventory", then transfer the spreadsheet already selected with the path in
     ' MBOFileNamePath
     DoCmd.SetWarnings False
-    DoCmd.RunSQL "DELETE * FROM [tbl RxScan Inventory Warehouse];"
+    DoCmd.RunSQL "DELETE * FROM [tmpRxScanInventory];"
     DoCmd.SetWarnings True
     
-    DoCmd.TransferSpreadsheet acImport, acSpreadsheetTypeExcel12, "tbl RxScan Inventory Non-Warehouse", MBOFileNamePath, True, , False
+    DoCmd.TransferSpreadsheet acImport, acSpreadsheetTypeExcel12, "tmp RxScan Inventory", RxScanInventoryFileNamePath, True, , False
+
+    DoCmd.SetWarnings False
+    SQL2 = "tmpRxScanInventory.QuantityOnHand, tmpRxScanInventory.AWC, tmpRxScanInventory.UOM, tmpRxScanInventory.TotalCost INTO [tbl RxScan Inventory Warehouse] FROM tmpRxScanInventory;"
+    SQL3 = SQL1 & SQL2
+    DoCmd.RunSQL SQL3
+    DoCmd.SetWarnings True
 
     ' Okay, now we enable the checkbox for Optional Imports and disable this button
     Me.chkOptionalImports.Enabled = True
