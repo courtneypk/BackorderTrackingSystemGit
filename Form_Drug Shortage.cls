@@ -32,7 +32,7 @@ Private Sub ImportMBO_Click()
     
     MBOFileNamePath = ""
     
-    MBOFileNamePath = getFileName() 'If file is selected, then the IfThen statement is exited.
+    MBOFileNamePath = getFileName("Select new MBO file") 'If file is selected, then the IfThen statement is exited.
     If MBOFileNamePath = "" Then
         tryAgain = MsgBox("No file name was selected. If you want to try again click Yes, if not click No", vbYesNo)
         If tryAgain = vbYes Then
@@ -60,3 +60,76 @@ Private Sub ImportMBO_Click()
 
 End Sub
 
+Private Sub ImportRxScanInventory_Click()
+
+    Dim Response1, Response2, Response3, tryAgain As Integer
+    Dim RxScanInventoryFileNamePath As String
+    
+    ' DoCmd.RunSavedImportExport ("Import-MBO")
+    ' Need to use code for this process at this time
+    ' Also, may need to ask in dialog box if user has already run the Excel code on the original CSV file to
+    ' get it ready for import.
+    
+    Response1 = MsgBox("Have you already downloaded both the Warehouse and non-Warehouse inventory files from RxScan?", vbYesNo, "MBO Import")
+    If Response1 = vbNo Then
+        Response3 = MsgBox("Please download both files first.")
+        Exit Sub
+    End If
+    
+    ' This part imports the inventory files, both Warehouse and Non-Warehouse. The first section gets the name of the
+    ' Non-Warehouse file and then imports it. The seconce section gets the name of the Warehouse file and then imports it.
+    
+    ' This section obtains the name of the file path using function getFileName(), which is located in
+    ' the module RxDrugShortage.
+    
+    RxScanInventoryFileNamePath = ""
+    
+    RxScanInventoryFileNamePath = getFileName("Select Non-Warehouse file") 'If file is selected, then the IfThen statement is exited.
+    If RxScanInventoryFileNamePath = "" Then
+        tryAgain = MsgBox("No file name was selected. If you want to try again click Yes, if not click No", vbYesNo)
+        If tryAgain = vbYes Then
+            RxScanInventoryFileNamePath = getFileName("Select Non-Warehouse file")
+        Else
+            Exit Sub
+        End If
+    End If
+    
+    ' First clear all data from the tmp table "tbl RxScan Inventory Non-Warehouse", then transfer the spreadsheet already selected with the path in
+    ' MBOFileNamePath
+    DoCmd.SetWarnings False
+    DoCmd.RunSQL "DELETE * FROM [tbl RxScan Inventory Non-Warehouse];"
+    DoCmd.SetWarnings True
+    
+    DoCmd.TransferSpreadsheet acImport, acSpreadsheetTypeExcel12, "tbl RxScan Inventory Non-Warehouse", MBOFileNamePath, True, , False
+
+    ' Warehouse file
+
+    RxScanInventoryFileNamePath = ""
+    
+    RxScanInventoryFileNamePath = getFileName("Select Warehouse file") 'If file is selected, then the IfThen statement is exited.
+    If RxScanInventoryFileNamePath = "" Then
+        tryAgain = MsgBox("No file name was selected. If you want to try again click Yes, if not click No", vbYesNo)
+        If tryAgain = vbYes Then
+            RxScanInventoryFileNamePath = getFileName("Select Warehouse file")
+        Else
+            Exit Sub
+        End If
+    End If
+    
+    ' First clear all data from the tmp table "tbl RxScan Inventory Warehouse", then transfer the spreadsheet already selected with the path in
+    ' MBOFileNamePath
+    DoCmd.SetWarnings False
+    DoCmd.RunSQL "DELETE * FROM [tbl RxScan Inventory Warehouse];"
+    DoCmd.SetWarnings True
+    
+    DoCmd.TransferSpreadsheet acImport, acSpreadsheetTypeExcel12, "tbl RxScan Inventory Non-Warehouse", MBOFileNamePath, True, , False
+
+    ' Okay, now we enable the checkbox for Optional Imports and disable this button
+    Me.chkOptionalImports.Enabled = True
+    Me.ImportRxScanInventory.Enabled = False
+    Me.chkOptionalImports.SetFocus
+
+    Response2 = MsgBox("Imports completed successfully")
+
+
+End Sub
