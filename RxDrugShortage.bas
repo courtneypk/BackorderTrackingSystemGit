@@ -1,17 +1,6 @@
 Attribute VB_Name = "RxDrugShortage"
 Option Compare Database
 
-Sub SelectMBOFile()
-
-    Dim filePath As String
-    
-    
-    filePath = "T:\Documents\Projects\Pharmacy\Drug Shortage\Downloaded MBO\MBO_09_15_2016 As Delivered.csv"
-
-
-End Sub
-
-
 
 Sub FileProperties()
 
@@ -39,7 +28,7 @@ Function ShowDateModified(filespec)
     ShowDateModified = f.DateLastModified
 End Function
 
-Function getFileName() As String
+Function getFileName(xMessage As String) As String
 Attribute getFileName.VB_Description = "This function presents the user a file dialog box to select a file and it returns the full path of the file."
 
    Dim fDialog As Object
@@ -62,7 +51,11 @@ Attribute getFileName.VB_Description = "This function presents the user a file d
       .InitialFileName = "\\cifs2\dfpharm$\Materials Management\Backorders\"
              
       ' Set the title of the dialog box.
-      .Title = "Please select the new file"
+      If xMessage = "" Then
+        .Title = "Please select the new file"
+      Else
+        .Title = xMessage
+      End If
  
       ' Clear out the current filters, and add our own.
       .Filters.Clear
@@ -92,3 +85,13 @@ Attribute getFileName.VB_Description = "This function presents the user a file d
    Exit Function
 
 End Function
+
+Sub RunReport()
+
+    'DoCmd.OpenReport "Projected Supply vs Delay", acViewPreview
+    'DoCmd.OpenReport "Projected Supply vs Delay", acViewReport
+    DoCmd.OutputTo acOutputReport, "Projected Supply vs Delay", acFormatPDF
+    DoCmd.OutputTo acOutputQuery, "Projected Supply vs Delay Excel", acFormatXLSX
+    'acOutputReport, "Projected Supply vs Delay", acFormatXLSX
+    
+End Sub

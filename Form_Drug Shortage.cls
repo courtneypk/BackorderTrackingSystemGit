@@ -10,7 +10,6 @@ Attribute VB_Exposed = False
 Option Compare Database
 
 
-
 Private Sub ImportMBO_Click()
 
     Dim Response1, Response2, Response3, tryAgain As Integer
@@ -95,13 +94,13 @@ Private Sub ImportRxScanInventory_Click()
     End If
     
     ' First clear all data from the tmp table "tmpRxScanInventory", then transfer the spreadsheet already selected with the path in
-    ' MBOFileNamePath, and finally use a SQL statement to pick a subset of columns to be copied into the table "tbl RxScan Inventory Non-Warehouse"
+    ' RxScanInventoryFileNamePath, and finally use a SQL statement to pick a subset of columns to be copied into the table "tbl RxScan Inventory Non-Warehouse"
     DoCmd.SetWarnings False
     DoCmd.RunSQL "DELETE * FROM [tmpRxScanInventory];"
     DoCmd.SetWarnings True
     
     ' Need to first import entire spreadsheet into a temporary table and then do a select of columns into the final table
-    DoCmd.TransferSpreadsheet acImport, acSpreadsheetTypeExcel12, "tmp RxScan Inventory", RxScanInventoryFileNamePath, True, , False
+    DoCmd.TransferSpreadsheet acImport, acSpreadsheetTypeExcel12, "tmpRxScanInventory", RxScanInventoryFileNamePath, True, , False
 
     DoCmd.SetWarnings False
     SQL1 = "SELECT tmpRxScanInventory.LocationName, tmpRxScanInventory.NDC, tmpRxScanInventory.Description, tmpRxScanInventory.PackageSize, tmpRxScanInventory.PackageUnit, "
@@ -126,12 +125,12 @@ Private Sub ImportRxScanInventory_Click()
     End If
     
     ' First clear all data from the tmp table "tmpRxScanInventory", then transfer the spreadsheet already selected with the path in
-    ' MBOFileNamePath
+    ' RxScanInventoryFileNamePath, and finally use a SQL statement to pick a subset of columns to be copied into the table "tbl RxScan Inventory Warehouse"
     DoCmd.SetWarnings False
     DoCmd.RunSQL "DELETE * FROM [tmpRxScanInventory];"
     DoCmd.SetWarnings True
     
-    DoCmd.TransferSpreadsheet acImport, acSpreadsheetTypeExcel12, "tmp RxScan Inventory", RxScanInventoryFileNamePath, True, , False
+    DoCmd.TransferSpreadsheet acImport, acSpreadsheetTypeExcel12, "tmpRxScanInventory", RxScanInventoryFileNamePath, True, , False
 
     DoCmd.SetWarnings False
     SQL2 = "tmpRxScanInventory.QuantityOnHand, tmpRxScanInventory.AWC, tmpRxScanInventory.UOM, tmpRxScanInventory.TotalCost INTO [tbl RxScan Inventory Warehouse] FROM tmpRxScanInventory;"
@@ -142,9 +141,29 @@ Private Sub ImportRxScanInventory_Click()
     ' Okay, now we enable the checkbox for Optional Imports and disable this button
     Me.chkOptionalImports.Enabled = True
     Me.ImportRxScanInventory.Enabled = False
+    Me.RunReport.Enabled = True
     Me.chkOptionalImports.SetFocus
 
     Response2 = MsgBox("Imports completed successfully")
 
+End Sub
+
+
+Private Sub chkOptionalImports_Click()
+
+    If Me.chkOptionalImports = True Then
+        Me.ImportTransactionLog.Enabled = True
+        Me.ImportNDCLookup.Enabled = True
+    Else
+        Me.ImportTransactionLog.Enabled = False
+        Me.ImportNDCLookup.Enabled = False
+    End If
+    
+End Sub
+
+Private Sub RunReport_Click()
+
+    DoCmd.OpenReport "Projected Supply vs Delay", acViewPreview
+    
 
 End Sub
