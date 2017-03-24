@@ -6,4 +6,4 @@ DFCI pharmacy places orders weekly for drugs through RxScan from three different
 
 Hilary then uses this information to manually create a spreadsheet that reports on just the medications that DFCI uses from the ABC report. The effect of a shortage is measured by taking the current inventory at DFCI and dividing by the weekly rate of use over the previous 3-4 month period of time (using the RxScan Transaction Log as a data source) to establish how many days' supply is available on hand. This is then color-coded based on the number of days' supply with 0-30 Red, 31-60 Yellow and <60 Green. This report is used in meetings with leadership regarding current status of supply chain issues and their resolution.
 
-!(images/Supply Issues Research Inventory Review.png)
+![Sample Report](./images/Supply%20Issues%20Research%20Inventory%20Review.png)
